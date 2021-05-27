@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -25,6 +26,7 @@
     }
   </style>
 </head>
+
 <body>
   <fieldset>
     <legend>Error Calculator</legend>
@@ -55,18 +57,110 @@
     <button>Trigger a Global Error</button>
   </section>
 
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
   <script>
+    window.TrackJS && TrackJS.install({
+      token: "060769c58e494339970dd43aa114b39f"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+  </script>
+
+  <script>
+
+    class BlankError extends Error {
+      constructor(msg) {
+        super(msg);
+        this.name = 'Blank Input Error';
+      }
+    }
+
     let calculateBtn = document.querySelector('#calculate');
     calculateBtn.addEventListener('click', () => {
       let output = document.querySelector('output');
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      if (firstNum == '' || secondNum == '') {
+        throw new BlankError('nothing was given as an input');
+      } else {
+        output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
-    // TODO - Make buttons functional
+    errorBtns[0].addEventListener('click', () => { // console log demo
+      console.log(errorBtns[0].innerHTML);
+    });
+    errorBtns[1].addEventListener('click', () => { // console error demo
+      console.error(errorBtns[1].innerHTML);
+    });
+    errorBtns[2].addEventListener('click', () => { // console dir
+      console.dir(document.querySelector('#error-btns'));
+    });
+    errorBtns[3].addEventListener('click', () => { // console dirxml
+      console.dirxml(document.querySelector('#error-btns'));
+    });
+    errorBtns[4].addEventListener('click', () => { // console group start
+      console.group('Log Group');
+    });
+    errorBtns[5].addEventListener('click', () => { // console group end
+      console.groupEnd('Log Group');
+    });
+    errorBtns[6].addEventListener('click', () => { // console table
+      console.table(errorBtns);
+    });
+    errorBtns[7].addEventListener('click', () => { // console time start
+      console.log('Timer Started');
+      console.time();
+    });
+    errorBtns[8].addEventListener('click', () => { // console time end
+      console.log('Timer Stopped');
+      console.timeEnd();
+    });
+    errorBtns[9].addEventListener('click', () => { // console trace
+      const traceThis = () => { layer1(); };
+      const layer1 = () => { layer2(); };
+      const layer2 = () => { layer3(); };
+      const layer3 = () => { console.trace(); };
+      traceThis();
+    });
+    errorBtns[10].addEventListener('click', () => { // global error
+      try {
+        traceThis();
+      } catch (err) {
+        console.error(err.message);
+      } finally {
+        console.log('Trigger a Global Error button clicked');
+      }
+    });
+
+    /* object literal wrapper to avoid namespace conflicts */
+    var AjaxTCRExamples = {};
+
+    AjaxTCRExamples.reportJSError = function (errorMessage, url, lineNumber) {
+      /* submit error message  */
+      TrackJS.track(lineNumber + ": " + errorMessage);
+      
+      console.log('Uh oh! Looks like we got an error');
+
+      return true; // suppress normal JS errors since we handled
+    }
+
+    AjaxTCRExamples.registerErrorHandler = function () {
+      if (window.onerror) // then one exists
+      {
+        var oldError = window.onerror;
+        var newErrorHandler = function (errorMessage, url, lineNumber) { AjaxTCRExamples.reportJSError(errorMessage, url, lineNumber); oldError(errorMessage, url, lineNumber); }
+        window.onerror = newErrorHandler;
+      }
+      else
+        window.onerror = AjaxTCRExamples.reportJSError;
+    }
+
+    /* bind the error handler */
+    AjaxTCRExamples.registerErrorHandler();
+
   </script>
 </body>
+
 </html>
